@@ -1,0 +1,191 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Smart Condens",
+        "description": "Elige tus entidades. Las estancias se añaden después.",
+        "data": {
+          "outdoor_sensor": "Temperatura exterior (estación meteo)",
+          "flow_sensor": "Temperatura de ida de la caldera",
+          "return_sensor": "Temperatura de retorno",
+          "burner_heating": "Quemador en calefacción",
+          "burner_dhw": "Quemador en agua caliente",
+          "starts_last_hour": "Arranques en la última hora",
+          "gas_sensor": "Contador de gas acumulado (kWh)",
+          "gas_price": "Precio del gas con impuestos",
+          "change_date": "Fecha del cambio a comparar",
+          "degree_day_base": "Temperatura base de grados-día",
+          "dhw_kwh_day": "Agua caliente kWh/día (0 = calcular con julio y agosto)",
+          "watts_per_element": "Vatios por elemento (ΔT50)",
+          "create_dashboard": "Crear el panel en la barra lateral",
+          "allow_boiler_write": "Permitir cambiar ajustes de la caldera (con confirmación)",
+          "ebusd_topic": "Tema MQTT de ebusd",
+          "ebusd_circuit": "Circuito de la caldera en ebusd"
+        }
+      }
+    },
+    "error": {
+      "invalid_topic": "Solo letras, números, guiones y /"
+    },
+    "abort": {
+      "single_instance_allowed": "Ya está configurado."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Smart Condens",
+        "data": {
+          "outdoor_sensor": "Temperatura exterior (estación meteo)",
+          "flow_sensor": "Temperatura de ida de la caldera",
+          "return_sensor": "Temperatura de retorno",
+          "burner_heating": "Quemador en calefacción",
+          "burner_dhw": "Quemador en agua caliente",
+          "starts_last_hour": "Arranques en la última hora",
+          "gas_sensor": "Contador de gas acumulado (kWh)",
+          "gas_price": "Precio del gas con impuestos",
+          "change_date": "Fecha del cambio a comparar",
+          "degree_day_base": "Temperatura base de grados-día",
+          "dhw_kwh_day": "Agua caliente kWh/día (0 = calcular con julio y agosto)",
+          "watts_per_element": "Vatios por elemento (ΔT50)",
+          "create_dashboard": "Crear el panel en la barra lateral",
+          "allow_boiler_write": "Permitir cambiar ajustes de la caldera (con confirmación)",
+          "ebusd_topic": "Tema MQTT de ebusd",
+          "ebusd_circuit": "Circuito de la caldera en ebusd"
+        }
+      }
+    },
+    "error": {
+      "invalid_topic": "Solo letras, números, guiones y /"
+    }
+  },
+  "config_subentries": {
+    "room": {
+      "initiate_flow": {
+        "user": "Añadir estancia",
+        "reconfigure": "Editar estancia"
+      },
+      "entry_type": "Estancia",
+      "step": {
+        "user": {
+          "title": "Estancia",
+          "data": {
+            "name": "Nombre de la estancia",
+            "climate": "Válvula o termostato (climate)",
+            "temperature_sensor": "Sonda de la estancia (vacío = usar la válvula)",
+            "demand_entity": "Demanda de calefacción (opcional)",
+            "elements": "Elementos del radiador (0 = no estimar vatios)",
+            "loop_order": "Posición en el anillo monotubo (0 = desconocida)"
+          }
+        },
+        "reconfigure": {
+          "title": "Estancia",
+          "data": {
+            "name": "Nombre de la estancia",
+            "climate": "Válvula o termostato (climate)",
+            "temperature_sensor": "Sonda de la estancia (vacío = usar la válvula)",
+            "demand_entity": "Demanda de calefacción (opcional)",
+            "elements": "Elementos del radiador (0 = no estimar vatios)",
+            "loop_order": "Posición en el anillo monotubo (0 = desconocida)"
+          }
+        }
+      },
+      "error": {
+        "empty_name": "Pon un nombre",
+        "duplicate_name": "Ya hay una estancia con ese nombre"
+      },
+      "abort": {
+        "reconfigure_successful": "Estancia actualizada"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "recommendation": {
+        "name": "Recomendación"
+      },
+      "return_average": {
+        "name": "Retorno medio 24 h"
+      },
+      "delta": {
+        "name": "Salto ida-retorno"
+      },
+      "gas_saving": {
+        "name": "Ahorro de gas"
+      },
+      "boiler_flow_max": {
+        "name": "Tope de ida en caldera (d.71)"
+      },
+      "boiler_pump": {
+        "name": "Bomba en caldera (d.14)"
+      },
+      "boiler_pending": {
+        "name": "Cambio pendiente",
+        "state": {
+          "none": "Ninguno",
+          "pending": "Pendiente de confirmar"
+        }
+      },
+      "boiler_status": {
+        "name": "Estado del ajuste"
+      },
+      "advice": {
+        "name": "Consejo"
+      },
+      "temperature": {
+        "name": "Temperatura"
+      },
+      "offset": {
+        "name": "Desfase de la válvula"
+      },
+      "valve": {
+        "name": "Estado de la válvula"
+      },
+      "power": {
+        "name": "Calor del radiador"
+      },
+      "heating_rate": {
+        "name": "Sube"
+      },
+      "cooling_rate": {
+        "name": "Baja"
+      },
+      "inertia": {
+        "name": "Inercia térmica"
+      }
+    },
+    "number": {
+      "flow_set": {
+        "name": "Ida fijada en la caldera (anotación)"
+      },
+      "new_flow_max": {
+        "name": "Nuevo tope de ida"
+      }
+    },
+    "select": {
+      "new_pump": {
+        "name": "Nueva potencia de bomba"
+      }
+    },
+    "button": {
+      "recalculate": {
+        "name": "Recalcular"
+      },
+      "read_boiler": {
+        "name": "Leer de la caldera"
+      },
+      "prepare_flow_max": {
+        "name": "Preparar cambio de ida"
+      },
+      "prepare_pump": {
+        "name": "Preparar cambio de bomba"
+      },
+      "confirm_change": {
+        "name": "Confirmar cambio en caldera"
+      },
+      "cancel_change": {
+        "name": "Cancelar cambio"
+      }
+    }
+  }
+}
