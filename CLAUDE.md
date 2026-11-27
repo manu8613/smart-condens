@@ -5,7 +5,7 @@ Integración pública de Home Assistant (`custom_components/smart_condens`): an�
 
 ## Por dónde empezar
 1. `docs/STATUS.md`.
-2. Solo el módulo afectado: `calc.py` (cálculos puros), `manager.py` (lecturas y estadísticas), `boiler.py` (escritura segura), `panel.py` (panel).
+2. Solo el módulo afectado: `calc.py` (cálculos puros), `manager.py` (lecturas y estadísticas), `boiler.py` (escritura segura), `detect.py` (asistente), `gastur.py` (precios de Gas TUR), `panel.py` (panel).
 
 ## Reglas
 - Público y anónimo; autor manu8613. Ni entidades, ni IPs, ni nombres reales.

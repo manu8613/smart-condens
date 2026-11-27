@@ -21,6 +21,7 @@ from homeassistant.components.recorder.statistics import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.event import (
     async_track_state_change_event,
     async_track_time_change,
@@ -29,7 +30,7 @@ from homeassistant.helpers.event import (
 from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 
-from . import calc
+from . import calc, gastur
 from . import const as c
 from .boiler import Boiler
 
@@ -167,6 +168,10 @@ class Manager:
                 self.hass, self._five_minutes, timedelta(minutes=5)
             )
         )
+        if price := self.gas_tur.get(gastur.PRICE):
+            unload(
+                async_track_state_change_event(self.hass, [price], self._prices_changed)
+            )
         for hour, minute in ((0, 20), (6, 0)):
             unload(
                 async_track_time_change(
@@ -333,6 +338,9 @@ class Manager:
         self.async_notify()
         self.async_schedule_save()
 
+    async def _prices_changed(self, _event: Any) -> None:
+        await self.async_update_gas()
+
     async def _daily(self, _now: datetime) -> None:
         await self.async_update_gas()
 
@@ -342,6 +350,42 @@ class Manager:
         await self.async_update_gas()
 
     # --- gas -------------------------------------------------------------------
+    @property
+    def gas_tur(self) -> dict[str, str]:
+        return gastur.entities(self.hass, self.cfg.get(c.CONF_GAS))
+
+    @property
+    def use_gas_tur(self) -> bool:
+        """Chosen in the options (default) and Gas TUR gives a price sensor."""
+        chosen = bool(self.cfg.get(c.CONF_GAS_TUR, True))
+        return chosen and gastur.PRICE in self.gas_tur
+
+    @property
+    def gas_unit(self) -> str:
+        """ "m³" for a volume meter, otherwise the meter is taken as energy."""
+        entity_id = self.cfg.get(c.CONF_GAS)
+        if not entity_id:
+            return "kWh"
+        state = self.hass.states.get(entity_id)
+        unit = state.attributes.get("unit_of_measurement") if state else None
+        if unit is None and (entry := er.async_get(self.hass).async_get(entity_id)):
+            unit = entry.unit_of_measurement
+        return "m³" if unit == "m³" else "kWh"
+
+    def gas_prices(self) -> tuple[calc.Tariff, str, float | None]:
+        """Tariff, where it comes from and the kWh per m³ if Gas TUR tells it."""
+        entity_id = self.gas_tur.get(gastur.PRICE)
+        state = self.hass.states.get(entity_id) if entity_id else None
+        attributes = state.attributes if state else {}
+        factor = gastur.factor(attributes)
+        if self.use_gas_tur:
+            # Never silently replaced by the manual price.
+            tariff = gastur.tariff(attributes)
+            source = "gas_tur" if tariff.periods else "gas_tur_sin_datos"
+            return tariff, source, factor
+        tariff = calc.Tariff.flat(float(self.cfg.get(c.CONF_PRICE) or 0))
+        return tariff, "manual" if tariff.periods else "sin_precio", factor
+
     async def _statistics(
         self, start: date, end: date, ids: set[str]
     ) -> dict[str, list[dict[str, Any]]]:
@@ -352,7 +396,7 @@ class Manager:
             dt_util.as_utc(dt_util.start_of_local_day(end)),
             ids,
             "day",
-            {"energy": "kWh", "temperature": "°C"},
+            {"energy": "kWh", "temperature": "°C", "volume": "m³"},
             {"change", "mean"},
         )
 
@@ -365,6 +409,14 @@ class Manager:
             self.async_notify()
             return
         today = dt_util.now().date()
+        tariff, source, factor = self.gas_prices()
+        kwh = 1.0
+        if self.gas_unit == "m³":
+            if factor is None:
+                self.gas = {"price_source": source, "problem": "factor", "rows": []}
+                self.async_notify()
+                return
+            kwh = factor
         summer_start, summer_end = calc.previous_summer(today)
         try:
             stats = await self._statistics(
@@ -386,10 +438,13 @@ class Manager:
                 if row.get(key) is not None
             }
 
-        gas = by_day(stats.get(gas_id, []), "change")
+        def energy(rows: list[dict[str, Any]]) -> dict[date, float]:
+            return {day: v * kwh for day, v in by_day(rows, "change").items()}
+
+        gas = energy(stats.get(gas_id, []))
         outdoor = by_day(stats.get(outdoor_id, []), "mean")
         dhw, dhw_ok = calc.dhw_baseline(
-            list(by_day(summer.get(gas_id, []), "change").values()),
+            list(energy(summer.get(gas_id, [])).values()),
             float(self.cfg.get(c.CONF_DHW_BASE) or 0),
         )
         summary = calc.gas_summary(
@@ -397,11 +452,16 @@ class Manager:
             changed,
             float(self.cfg.get(c.CONF_GD_BASE) or c.DEFAULT_GD_BASE),
             dhw,
-            float(self.cfg.get(c.CONF_PRICE) or 0),
+            tariff,
             today,
         )
         summary["dhw"] = round(dhw, 1)
         summary["dhw_ok"] = dhw_ok
+        summary["price_source"] = source
+        if prices := tariff.on(today):
+            summary["price_kwh"], summary["fixed_day"] = prices
+        if kwh != 1.0:
+            summary["kwh_per_m3"] = kwh
         self.gas = summary
         self._publish_series(summary["rows"])
         self.async_notify()
