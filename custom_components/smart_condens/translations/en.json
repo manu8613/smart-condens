@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Smart Condens",
-        "description": "Pick your entities. Rooms are added afterwards.",
+        "description": "Filled fields were detected automatically: check them and complete any others. For the outdoor temperature, your own weather station is best.",
         "data": {
           "outdoor_sensor": "Outdoor temperature (weather station)",
           "flow_sensor": "Boiler flow temperature",
@@ -22,10 +22,30 @@
           "ebusd_topic": "ebusd MQTT topic",
           "ebusd_circuit": "Boiler circuit in ebusd"
         }
+      },
+      "rooms": {
+        "title": "Rooms",
+        "description": "Select one valve or thermostat per room. The next screens show the proposal for each one. You can select none and add them later.",
+        "data": {
+          "rooms": "Valves and thermostats"
+        }
+      },
+      "room": {
+        "title": "Room {current} of {total}",
+        "description": "{valve}\n\nCheck the proposal. If the room sensor is empty, the valve temperature is used.",
+        "data": {
+          "name": "Room name",
+          "temperature_sensor": "Room sensor (empty = use the valve)",
+          "demand_entity": "Heating demand (optional)",
+          "elements": "Radiator elements (0 = no power estimate)",
+          "loop_order": "Position on the one-pipe loop (0 = unknown)"
+        }
       }
     },
     "error": {
-      "invalid_topic": "Only letters, numbers, dashes and /"
+      "invalid_topic": "Only letters, numbers, dashes and /",
+      "empty_name": "Enter a name",
+      "duplicate_name": "There is already a room with that name"
     },
     "abort": {
       "single_instance_allowed": "Already configured."

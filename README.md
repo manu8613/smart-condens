@@ -17,9 +17,13 @@ Requiere Home Assistant 2026.10 o posterior, con el registro histórico activo.
 
 1. **Ajustes → Marketplace → Añadir desde enlace**, pega `https://github.com/manu8613/smart-condens` y descarga.
 2. Reinicia Home Assistant.
-3. **Ajustes → Dispositivos y servicios → Añadir integración → Smart Condens** y elige tus entidades: exterior, ida, retorno y, si quieres, quemador, arranques, contador de gas, precio y fecha del cambio.
-4. En la misma pantalla de la integración, **Añadir estancia** por cada una: válvula o termostato, sonda de la estancia (si se deja vacía se usa la de la válvula), demanda, elementos del radiador y posición en el anillo monotubo.
-5. Abre **Smart Condens** en la barra lateral.
+3. **Ajustes → Dispositivos y servicios → Añadir integración → Smart Condens**. El asistente hace el resto; no hace falta ningún script ni token:
+   - **Casa:** rellena lo que reconoce (ida y retorno de ebusd, quemador, arranques, contador de gas y exterior) y deja en blanco lo dudoso. Completa lo que falte y el precio del gas.
+   - **Estancias:** marca las válvulas o termostatos. Los que solo calientan salen ya marcados.
+   - **Una pantalla por estancia:** propone nombre, sonda (por zona o por nombre) y demanda. Corrige lo que quieras y añade los elementos del radiador y su posición en el anillo monotubo.
+4. Abre **Smart Condens** en la barra lateral.
+
+La detección se basa en nombres, zonas y tipos de sensor, así que **revisa cada propuesta**. Después puedes cambiar los datos de la casa en **Configurar**, y añadir o editar estancias desde la pantalla de la integración.
 
 Haz una copia de seguridad antes de instalar.
 

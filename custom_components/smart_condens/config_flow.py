@@ -1,4 +1,4 @@
-"""Setup: the user picks their own entities, nothing is hard coded."""
+"""Setup wizard: proposes the user's own entities and rooms for them to review."""
 
 from __future__ import annotations
 
@@ -17,6 +17,7 @@ from homeassistant.core import callback
 from homeassistant.helpers import selector
 
 from . import const as c
+from . import detect
 
 try:  # Home Assistant 2026.12+ replaced voluptuous with probatio.
     import probatio as vol
@@ -75,18 +76,103 @@ def _errors(user_input: dict[str, Any]) -> dict[str, str]:
 
 
 class SmartCondensConfigFlow(ConfigFlow, domain=c.DOMAIN):
+    """House entities, then which valves to analyse, then one form per room."""
+
     VERSION = 1
+
+    def __init__(self) -> None:
+        self._data: dict[str, Any] = {}
+        self._guesses: list[detect.RoomGuess] = []
+        self._pending: list[detect.RoomGuess] = []
+        self._rooms: list[dict[str, Any]] = []
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         errors: dict[str, str] = {}
         if user_input is not None and not (errors := _errors(user_input)):
-            return self.async_create_entry(title="Smart Condens", data=user_input)
+            self._data = user_input
+            self._guesses = detect.room_guesses(self.hass, user_input)
+            if self._guesses:
+                return await self.async_step_rooms()
+            return self._create()
+        suggested = user_input or detect.house_suggestions(self.hass)
         return self.async_show_form(
             step_id="user",
-            data_schema=self.add_suggested_values_to_schema(main_schema(), user_input),
+            data_schema=self.add_suggested_values_to_schema(main_schema(), suggested),
             errors=errors,
+        )
+
+    async def async_step_rooms(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        if user_input is not None:
+            chosen = user_input.get(c.CONF_ROOMS) or []
+            self._pending = [g for g in self._guesses if g.climate in chosen]
+            self._rooms = []
+            return await self._next_room()
+        schema = vol.Schema(
+            {
+                vol.Optional(c.CONF_ROOMS): selector.EntitySelector(
+                    selector.EntitySelectorConfig(domain=["climate"], multiple=True)
+                )
+            }
+        )
+        selected = [g.climate for g in self._guesses if g.preselected]
+        return self.async_show_form(
+            step_id="rooms",
+            data_schema=self.add_suggested_values_to_schema(
+                schema, {c.CONF_ROOMS: selected}
+            ),
+        )
+
+    async def async_step_room(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        guess = self._pending[0]
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            name = clean_name(user_input[c.CONF_NAME])
+            taken = [room["title"] for room in self._rooms]
+            if not (errors := _name_error(name, taken)):
+                data = {**user_input, c.CONF_NAME: name, c.CONF_CLIMATE: guess.climate}
+                self._rooms.append(
+                    {
+                        "subentry_type": c.SUBENTRY_ROOM,
+                        "title": name,
+                        "data": data,
+                        "unique_id": None,
+                    }
+                )
+                self._pending.pop(0)
+                return await self._next_room()
+        return self._room_form(user_input or guess.data, errors)
+
+    async def _next_room(self) -> ConfigFlowResult:
+        if not self._pending:
+            return self._create()
+        return self._room_form(self._pending[0].data, {})
+
+    def _room_form(
+        self, values: dict[str, Any], errors: dict[str, str]
+    ) -> ConfigFlowResult:
+        climate = self._pending[0].climate
+        state = self.hass.states.get(climate)
+        done = len(self._rooms)
+        return self.async_show_form(
+            step_id="room",
+            data_schema=self.add_suggested_values_to_schema(WIZARD_ROOM_SCHEMA, values),
+            errors=errors,
+            description_placeholders={
+                "current": str(done + 1),
+                "total": str(done + len(self._pending)),
+                "valve": f"{state.name if state else climate} ({climate})",
+            },
+        )
+
+    def _create(self) -> ConfigFlowResult:
+        return self.async_create_entry(
+            title="Smart Condens", data=self._data, subentries=self._rooms
         )
 
     @staticmethod
@@ -119,15 +205,18 @@ class SmartCondensOptionsFlow(OptionsFlow):
         )
 
 
-ROOM_SCHEMA = vol.Schema(
-    {
-        vol.Required(c.CONF_NAME): selector.TextSelector(),
-        vol.Required(c.CONF_CLIMATE): _entity("climate"),
-        vol.Optional(c.CONF_TEMP): _entity("sensor"),
-        vol.Optional(c.CONF_DEMAND): _entity("sensor", "binary_sensor"),
-        vol.Optional(c.CONF_ELEMENTS, default=0): _number(0, 60, 1),
-        vol.Optional(c.CONF_ORDER, default=0): _number(0, 60, 1),
-    }
+ROOM_FIELDS = {
+    vol.Required(c.CONF_NAME): selector.TextSelector(),
+    vol.Required(c.CONF_CLIMATE): _entity("climate"),
+    vol.Optional(c.CONF_TEMP): _entity("sensor"),
+    vol.Optional(c.CONF_DEMAND): _entity("sensor", "binary_sensor"),
+    vol.Optional(c.CONF_ELEMENTS, default=0): _number(0, 60, 1),
+    vol.Optional(c.CONF_ORDER, default=0): _number(0, 60, 1),
+}
+ROOM_SCHEMA = vol.Schema(ROOM_FIELDS)
+# In the wizard the valve of each form is already chosen.
+WIZARD_ROOM_SCHEMA = vol.Schema(
+    {key: value for key, value in ROOM_FIELDS.items() if key != c.CONF_CLIMATE}
 )
 
 
@@ -136,16 +225,20 @@ def clean_name(name: str) -> str:
     return re.sub(r"[{}|%`<>\[\]\"'\\\n\r]", "", name).strip()[:40]
 
 
+def _name_error(name: str, taken: list[str]) -> dict[str, str]:
+    if not name:
+        return {c.CONF_NAME: "empty_name"}
+    if name.casefold() in {other.casefold() for other in taken}:
+        return {c.CONF_NAME: "duplicate_name"}
+    return {}
+
+
 class RoomSubentryFlow(ConfigSubentryFlow):
     """Add or edit one room."""
 
     def _name_error(self, name: str, skip: str | None) -> dict[str, str]:
-        if not name:
-            return {c.CONF_NAME: "empty_name"}
-        for sid, sub in self._get_entry().subentries.items():
-            if sid != skip and sub.title.casefold() == name.casefold():
-                return {c.CONF_NAME: "duplicate_name"}
-        return {}
+        rooms = self._get_entry().subentries.items()
+        return _name_error(name, [sub.title for sid, sub in rooms if sid != skip])
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
