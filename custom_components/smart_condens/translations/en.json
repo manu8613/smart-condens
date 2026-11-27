@@ -1,0 +1,191 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Smart Condens",
+        "description": "Pick your entities. Rooms are added afterwards.",
+        "data": {
+          "outdoor_sensor": "Outdoor temperature (weather station)",
+          "flow_sensor": "Boiler flow temperature",
+          "return_sensor": "Return temperature",
+          "burner_heating": "Burner on for heating",
+          "burner_dhw": "Burner on for hot water",
+          "starts_last_hour": "Starts in the last hour",
+          "gas_sensor": "Cumulative gas meter (kWh)",
+          "gas_price": "Gas price with taxes",
+          "change_date": "Date of the change to compare",
+          "degree_day_base": "Degree-day base temperature",
+          "dhw_kwh_day": "Hot water kWh/day (0 = from July and August)",
+          "watts_per_element": "Watts per radiator element (dT50)",
+          "create_dashboard": "Create the sidebar dashboard",
+          "allow_boiler_write": "Allow changing boiler settings (with confirmation)",
+          "ebusd_topic": "ebusd MQTT topic",
+          "ebusd_circuit": "Boiler circuit in ebusd"
+        }
+      }
+    },
+    "error": {
+      "invalid_topic": "Only letters, numbers, dashes and /"
+    },
+    "abort": {
+      "single_instance_allowed": "Already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Smart Condens",
+        "data": {
+          "outdoor_sensor": "Outdoor temperature (weather station)",
+          "flow_sensor": "Boiler flow temperature",
+          "return_sensor": "Return temperature",
+          "burner_heating": "Burner on for heating",
+          "burner_dhw": "Burner on for hot water",
+          "starts_last_hour": "Starts in the last hour",
+          "gas_sensor": "Cumulative gas meter (kWh)",
+          "gas_price": "Gas price with taxes",
+          "change_date": "Date of the change to compare",
+          "degree_day_base": "Degree-day base temperature",
+          "dhw_kwh_day": "Hot water kWh/day (0 = from July and August)",
+          "watts_per_element": "Watts per radiator element (dT50)",
+          "create_dashboard": "Create the sidebar dashboard",
+          "allow_boiler_write": "Allow changing boiler settings (with confirmation)",
+          "ebusd_topic": "ebusd MQTT topic",
+          "ebusd_circuit": "Boiler circuit in ebusd"
+        }
+      }
+    },
+    "error": {
+      "invalid_topic": "Only letters, numbers, dashes and /"
+    }
+  },
+  "config_subentries": {
+    "room": {
+      "initiate_flow": {
+        "user": "Add room",
+        "reconfigure": "Edit room"
+      },
+      "entry_type": "Room",
+      "step": {
+        "user": {
+          "title": "Room",
+          "data": {
+            "name": "Room name",
+            "climate": "Valve or thermostat (climate)",
+            "temperature_sensor": "Room sensor (empty = use the valve)",
+            "demand_entity": "Heating demand (optional)",
+            "elements": "Radiator elements (0 = no power estimate)",
+            "loop_order": "Position on the one-pipe loop (0 = unknown)"
+          }
+        },
+        "reconfigure": {
+          "title": "Room",
+          "data": {
+            "name": "Room name",
+            "climate": "Valve or thermostat (climate)",
+            "temperature_sensor": "Room sensor (empty = use the valve)",
+            "demand_entity": "Heating demand (optional)",
+            "elements": "Radiator elements (0 = no power estimate)",
+            "loop_order": "Position on the one-pipe loop (0 = unknown)"
+          }
+        }
+      },
+      "error": {
+        "empty_name": "Enter a name",
+        "duplicate_name": "There is already a room with that name"
+      },
+      "abort": {
+        "reconfigure_successful": "Room updated"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "recommendation": {
+        "name": "Recommendation"
+      },
+      "return_average": {
+        "name": "Return average 24 h"
+      },
+      "delta": {
+        "name": "Flow-return difference"
+      },
+      "gas_saving": {
+        "name": "Gas saving"
+      },
+      "boiler_flow_max": {
+        "name": "Boiler flow limit (d.71)"
+      },
+      "boiler_pump": {
+        "name": "Boiler pump (d.14)"
+      },
+      "boiler_pending": {
+        "name": "Pending change",
+        "state": {
+          "none": "None",
+          "pending": "Waiting for confirmation"
+        }
+      },
+      "boiler_status": {
+        "name": "Adjustment status"
+      },
+      "advice": {
+        "name": "Advice"
+      },
+      "temperature": {
+        "name": "Temperature"
+      },
+      "offset": {
+        "name": "Valve offset"
+      },
+      "valve": {
+        "name": "Valve state"
+      },
+      "power": {
+        "name": "Radiator heat"
+      },
+      "heating_rate": {
+        "name": "Heating rate"
+      },
+      "cooling_rate": {
+        "name": "Cooling rate"
+      },
+      "inertia": {
+        "name": "Thermal inertia"
+      }
+    },
+    "number": {
+      "flow_set": {
+        "name": "Flow set on the boiler (note)"
+      },
+      "new_flow_max": {
+        "name": "New flow limit"
+      }
+    },
+    "select": {
+      "new_pump": {
+        "name": "New pump setting"
+      }
+    },
+    "button": {
+      "recalculate": {
+        "name": "Recalculate"
+      },
+      "read_boiler": {
+        "name": "Read from boiler"
+      },
+      "prepare_flow_max": {
+        "name": "Prepare flow change"
+      },
+      "prepare_pump": {
+        "name": "Prepare pump change"
+      },
+      "confirm_change": {
+        "name": "Confirm boiler change"
+      },
+      "cancel_change": {
+        "name": "Cancel change"
+      }
+    }
+  }
+}

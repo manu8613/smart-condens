@@ -1,0 +1,22 @@
+{
+  "domain": "smart_condens",
+  "name": "Smart Condens",
+  "after_dependencies": [
+    "lovelace",
+    "mqtt"
+  ],
+  "codeowners": [
+    "@manu8613"
+  ],
+  "config_flow": true,
+  "dependencies": [
+    "recorder"
+  ],
+  "documentation": "https://github.com/manu8613/smart-condens",
+  "integration_type": "service",
+  "iot_class": "calculated",
+  "issue_tracker": "https://github.com/manu8613/smart-condens/issues",
+  "requirements": [],
+  "single_config_entry": true,
+  "version": "0.1.0"
+}
