@@ -1,6 +1,6 @@
 # Estado
 
-**Versión:** 0.1.0, en PR (sin fusionar).
+**Versión:** 0.2.0, en PR (sin fusionar). La 0.1.0 está en `main`.
 
 ## Comprobado
 - 25 pruebas automáticas.
