@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Smart Condens",
-        "description": "Elige tus entidades. Las estancias se añaden después.",
+        "description": "Los campos ya rellenos se han detectado solos: revísalos y completa los que quieras. Como temperatura exterior, mejor la de tu estación meteorológica.",
         "data": {
           "outdoor_sensor": "Temperatura exterior (estación meteo)",
           "flow_sensor": "Temperatura de ida de la caldera",
@@ -22,10 +22,30 @@
           "ebusd_topic": "Tema MQTT de ebusd",
           "ebusd_circuit": "Circuito de la caldera en ebusd"
         }
+      },
+      "rooms": {
+        "title": "Estancias",
+        "description": "Marca una válvula o termostato por estancia. En las siguientes pantallas revisarás la propuesta de cada una. Puedes no marcar ninguna y añadirlas después.",
+        "data": {
+          "rooms": "Válvulas y termostatos"
+        }
+      },
+      "room": {
+        "title": "Estancia {current} de {total}",
+        "description": "{valve}\n\nRevisa la propuesta. Si la sonda queda vacía se usa la temperatura de la válvula.",
+        "data": {
+          "name": "Nombre de la estancia",
+          "temperature_sensor": "Sonda de la estancia (vacío = usar la válvula)",
+          "demand_entity": "Demanda de calefacción (opcional)",
+          "elements": "Elementos del radiador (0 = no estimar vatios)",
+          "loop_order": "Posición en el anillo monotubo (0 = desconocida)"
+        }
       }
     },
     "error": {
-      "invalid_topic": "Solo letras, números, guiones y /"
+      "invalid_topic": "Solo letras, números, guiones y /",
+      "empty_name": "Pon un nombre",
+      "duplicate_name": "Ya hay una estancia con ese nombre"
     },
     "abort": {
       "single_instance_allowed": "Ya está configurado."

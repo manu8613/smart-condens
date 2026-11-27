@@ -24,6 +24,7 @@ CONF_MQTT_TOPIC = "ebusd_topic"
 CONF_CIRCUIT = "ebusd_circuit"
 
 SUBENTRY_ROOM = "room"
+CONF_ROOMS = "rooms"
 CONF_NAME = "name"
 CONF_TEMP = "temperature_sensor"
 CONF_CLIMATE = "climate"
