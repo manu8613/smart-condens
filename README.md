@@ -6,7 +6,7 @@ Integración de Home Assistant para ver si la temperatura de ida de una caldera 
 
 - **Hoy:** consejo (subir, mantener o bajar), ida y retorno, temperatura exterior y estado de cada estancia: temperatura, válvula, desfase entre válvula y sonda, calor estimado del radiador.
 - **Ondas:** gráficas de ida, retorno, calle y de cada estancia.
-- **Gas:** kWh por grado-día antes y después de un cambio, coste diario y cuánto sube o baja.
+- **Gas:** kWh por grado-día antes y después de un cambio, coste diario y cuánto sube o baja. Con [Gas TUR](https://github.com/manu8613/gas-tur), sus precios y costes.
 - **Ajustar caldera** (opcional): tope de ida (d.71) y potencia de la bomba (d.14) por ebusd, siempre con confirmación.
 
 Solo usa tarjetas propias de Home Assistant. Los textos de los indicadores están en español.
@@ -26,6 +26,17 @@ Requiere Home Assistant 2026.10 o posterior, con el registro histórico activo.
 La detección se basa en nombres, zonas y tipos de sensor, así que **revisa cada propuesta**. Después puedes cambiar los datos de la casa en **Configurar**, y añadir o editar estancias desde la pantalla de la integración.
 
 Haz una copia de seguridad antes de instalar.
+
+## Con Gas TUR
+
+Si [Gas TUR](https://github.com/manu8613/gas-tur) está instalado, no hace falta configurar nada más:
+
+- **Precios:** término variable, impuesto de hidrocarburos e IVA; cada día con el precio de su historial. Los días anteriores al primer precio conocido usan ese primero. Los impuestos y el alquiler son los actuales.
+- **Coste diario:** consumo más término fijo y alquiler del contador. El ahorro solo cuenta energía.
+- **Contador:** el asistente propone su lectura en m³, que se pasa a kWh con su factor de conversión actual. También vale otro contador en kWh.
+- **Panel:** coste de hoy y del mes, factura hasta hoy y previsión.
+
+Si Gas TUR no da precios, no se calculan euros: no se cambia en silencio por el precio manual. Para usar el manual, desactiva «Usar los precios de Gas TUR» en **Configurar**. Si instalas Gas TUR después, recarga Smart Condens.
 
 ## Qué esperar
 

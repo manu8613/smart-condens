@@ -1,9 +1,10 @@
 # Estado
 
-**Versión:** 0.2.0, en PR (sin fusionar). La 0.1.0 está en `main`.
+**Versión:** 0.3.0, en PR (sin fusionar). La 0.2.0 está en `main`.
 
 ## Comprobado
-- 25 pruebas automáticas.
+- 34 pruebas automáticas.
+- Gas TUR (`gastur.py`): depende de los atributos de su sensor de precio (`historial`, `iva`, `impuesto_hidrocarburos`, `alquiler_contador_dia`, `factor_conversion`).
 - El asistente propone entidades y estancias (`detect.py`); solo con nombres inventados.
 - Home Assistant 2026.11.3 de pruebas, con MQTT real y caldera simulada: instalación, estancias, panel, gas y un cambio confirmado de principio a fin.
 

@@ -64,10 +64,17 @@ def _build(hass: HomeAssistant, entry: SmartCondensConfigEntry) -> dict[str, Any
         "return": manager.cfg.get(CONF_RETURN),
         "outdoor": manager.cfg.get(CONF_OUTDOOR),
         "gas": manager.cfg.get(CONF_GAS),
+        "gas_unit": manager.gas_unit,
     }
+    gas_tur = manager.gas_tur if manager.use_gas_tur else {}
     series = {s: statistic_id(entry, s) for s in EXTERNAL_SERIES}
     return build_panel(
-        house, rooms, sources, series, bool(manager.cfg.get(CONF_ALLOW_WRITE))
+        house,
+        rooms,
+        sources,
+        series,
+        bool(manager.cfg.get(CONF_ALLOW_WRITE)),
+        gas_tur,
     )
 
 

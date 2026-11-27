@@ -50,6 +50,7 @@ def main_schema() -> vol.Schema:
             vol.Optional(c.CONF_BURNER_DHW): _entity("binary_sensor"),
             vol.Optional(c.CONF_STARTS): _entity("sensor"),
             vol.Optional(c.CONF_GAS): _entity("sensor"),
+            vol.Optional(c.CONF_GAS_TUR, default=True): selector.BooleanSelector(),
             vol.Optional(c.CONF_PRICE, default=0): _number(0, 1, "any", "€/kWh"),
             vol.Optional(c.CONF_CHANGE_DATE): selector.DateSelector(),
             vol.Optional(c.CONF_GD_BASE, default=c.DEFAULT_GD_BASE): _number(

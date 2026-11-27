@@ -19,6 +19,7 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.util import dt as dt_util
 
 from . import const as c
+from . import gastur
 
 EBUSD_RE = re.compile(r"ebusd[_/ .-]*bai[_/ .-]+(.+)$", re.IGNORECASE)
 
@@ -191,7 +192,8 @@ def house_suggestions(hass: HomeAssistant) -> dict[str, Any]:
         ),
         c.CONF_STARTS: _only(starts)
         or _only([s for s in starts if s.has("calefaccion", "heating")]),
-        c.CONF_GAS: _only(gas)
+        c.CONF_GAS: gastur.entities(hass).get(gastur.METER)
+        or _only(gas)
         or _only([s for s in gas if s.attr("state_class") == "total_increasing"]),
         c.CONF_CHANGE_DATE: dt_util.now().date().isoformat(),
     }

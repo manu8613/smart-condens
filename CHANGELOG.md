@@ -1,5 +1,9 @@
 # Cambios
 
+## [0.3.0] - 2026-11-27
+
+- Integración con Gas TUR: precios con impuestos e historial, término fijo en el coste diario, contador en m³ y costes en el panel.
+
 ## [0.2.0] - 2026-11-27
 
 - El asistente de instalación detecta las entidades, propone las estancias y las crea.

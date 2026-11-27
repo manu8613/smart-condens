@@ -206,12 +206,33 @@ def dhw_baseline(summer_days: list[float], manual: float) -> tuple[float, bool]:
     return 0.0, False
 
 
+@dataclass(frozen=True)
+class Tariff:
+    """From each date on: price of a kWh and fixed cost of a day, with taxes."""
+
+    periods: tuple[tuple[date, float, float], ...] = ()
+
+    @classmethod
+    def flat(cls, price: float) -> Tariff:
+        return cls(((date.min, price, 0.0),)) if price > 0 else cls()
+
+    def on(self, day: date) -> tuple[float, float] | None:
+        """The earliest known prices are used for the days before them."""
+        if not self.periods:
+            return None
+        current = self.periods[0]
+        for period in self.periods:
+            if period[0] <= day:
+                current = period
+        return current[1], current[2]
+
+
 def gas_summary(
     days: list[tuple[date, float, float]],
     change: date,
     base: float,
     dhw: float,
-    price: float,
+    price: float | Tariff,
     today: date,
 ) -> dict[str, Any]:
     """Compare heating gas per degree-day before and after the change.
@@ -244,22 +265,26 @@ def gas_summary(
     before, after = totals["before"], totals["after"]
     r_before = before[0] / before[1] if before[2] >= 3 else None
     r_after = after[0] / after[1] if after[2] >= 3 else None
+    tariff = price if isinstance(price, Tariff) else Tariff.flat(price)
     saving = None
     saved_eur = None
     if r_before and r_after is not None:
         saving = round((1 - r_after / r_before) * 100, 1)
-        if price > 0:
-            saved_eur = round((r_before * after[1] - after[0]) * price, 2)
     for row in rows:
-        row["cost"] = row["gas"] * price if price > 0 else None
+        prices = tariff.on(row["date"])
+        row["cost"] = None if prices is None else row["gas"] * prices[0] + prices[1]
+        # Only the energy changes with the boiler: the fixed term is paid anyway.
         row["diff"] = (
-            (row["heat"] - r_before * row["degree"]) * price
-            if price > 0
+            (row["heat"] - r_before * row["degree"]) * prices[0]
+            if prices is not None
             and r_before
             and row["period"] == "after"
             and row["ratio"] is not None
             else None
         )
+    if saving is not None and tariff.periods:
+        saved = [row["diff"] for row in rows if row["diff"] is not None]
+        saved_eur = round(0.0 - sum(saved), 2)
     return {
         "before": None if r_before is None else round(r_before, 2),
         "after": None if r_after is None else round(r_after, 2),

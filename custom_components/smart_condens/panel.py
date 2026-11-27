@@ -35,6 +35,14 @@ ROOM_KEYS = (
 )
 
 
+GAS_TUR_ROWS = (
+    ("coste_hoy", "Coste hoy"),
+    ("coste_mes", "Coste este mes"),
+    ("factura", "Factura hasta hoy"),
+    ("prevision_factura", "Previsión de factura"),
+)
+
+
 def _full(card: dict[str, Any]) -> dict[str, Any]:
     card["grid_options"] = {"columns": "full"}
     return card
@@ -121,10 +129,12 @@ def build_panel(
     sources: dict[str, str | None],
     series: dict[str, str],
     allow_write: bool,
+    gas_tur: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     """house: our entity ids. rooms: name, climate, sensor and ids.
 
     sources: the user's flow/return/outdoor/gas entities. series: statistic ids.
+    gas_tur: Gas TUR entities by key, empty when its prices are not used.
     """
     flow, ret = sources.get("flow"), sources.get("return")
     outdoor, gas = sources.get("outdoor"), sources.get("gas")
@@ -265,6 +275,18 @@ def build_panel(
         "válidos en cada periodo.{% endif %}"
         "{% if state_attr(e,'dhw_ok') == false %}\n\n⚠️ Sin datos de verano: pon "
         "el consumo de agua caliente en las opciones.{% endif %}"
+        "{% if state_attr(e,'problem') == 'factor' %}\n\n⚠️ El contador está en m³ "
+        "y no hay factor de Gas TUR para pasarlo a kWh.{% endif %}"
+        "{% set src = state_attr(e,'price_source') %}"
+        "{% set kwh = state_attr(e,'price_kwh') %}"
+        "{% if src == 'gas_tur' and kwh %}\n\nPrecios de Gas TUR con impuestos: "
+        "{{ kwh | round(4) }} €/kWh y "
+        "{{ '%.2f' | format(state_attr(e,'fixed_day')) }} "
+        "€/día fijo (término fijo y contador)."
+        "{% elif src == 'gas_tur_sin_datos' %}\n\n⚠️ Gas TUR no da precios ahora: "
+        "no se calculan euros."
+        "{% elif src == 'manual' and kwh %}\n\nPrecio manual: {{ kwh }} €/kWh."
+        "{% endif %}"
     )
     days_text = (
         "| Día | kWh | Ext. | kWh/GD | ± € |\n|---|---|---|---|---|\n"
@@ -286,7 +308,8 @@ def build_panel(
             _statistics("Temperatura exterior media", [outdoor], "mean", "line")
         )
     if gas:
-        gas_graphs.insert(0, _statistics("Gas total (kWh)", [gas], "change"))
+        unit = sources.get("gas_unit") or "kWh"
+        gas_graphs.insert(0, _statistics(f"Gas total ({unit})", [gas], "change"))
     gas_view = [
         _section(
             "Antes y después",
@@ -295,6 +318,14 @@ def build_panel(
         ),
         _section("Gráficas", "mdi:chart-bar", gas_graphs, 2),
     ]
+    costs = [
+        {"entity": gas_tur[key], "name": name}
+        for key, name in GAS_TUR_ROWS
+        if gas_tur and key in gas_tur
+    ]
+    if costs:
+        card = _full({"type": "entities", "entities": costs})
+        gas_view.insert(1, _section("Gas TUR", "mdi:cash", [card]))
 
     pending = house["boiler_pending"]
     boiler_cards: list[dict[str, Any]] = [
